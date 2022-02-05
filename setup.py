@@ -6,7 +6,7 @@ LONG_DESCRIPTION = ''
 
 # Setting up
 setup(
-    name="disposableEmail",
+    name="disposable_email",
     version=VERSION,
     author="AJ Anderson",
     author_email="ajanderson1@gmail.com",
