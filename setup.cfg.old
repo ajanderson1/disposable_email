@@ -1,0 +1,18 @@
+[metadata]
+name = disposable_email
+version = 0.0.1
+author = AJ Anderson
+author_email = ajanderson1@gmail.com
+description = A simple python protocol for working with disposable email clients
+long_description = file: README.md
+long_description_content_type = text/markdown
+url = https://github.com/ajanderson1 # TBC
+classifiers =
+    Programming Language :: Python :: 3
+    License :: OSI Approved :: MIT License
+    Operating System :: OS Independent
+
+[options]
+packages = find:
+python_requires = >=3.8
+include_package_data = True
