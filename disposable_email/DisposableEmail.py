@@ -2,7 +2,6 @@ from typing import Protocol
 from email.message import EmailMessage
 import re
 
-
 class DisposableEmail(Protocol):
     """
     Initiate a session/inbox - treated as same thing
@@ -24,6 +23,13 @@ class DisposableEmail(Protocol):
         """ Get number of items in inbox """
         ...
 
+    def send_email(self, recipient: str = None, subject: str = None, body: str = None) -> None:
+        """
+        Send email
+        """
+        ...
+
+
     def wait_for_next_email(self, timeout=100) -> str:
         """
         Poll next email to arrive and return it.
@@ -35,6 +41,10 @@ class DisposableEmail(Protocol):
         wrap up the email object used by this email provider (GuerillaMail/MailSlurp/etc)
         as the Python standard email Object (see: https://docs.python.org/3/library/email.html)
         """
+
+
+
+
 
     @staticmethod
     def validate_recipient_email_addr(recipient_email_addr):
@@ -49,3 +59,8 @@ class DisposableEmail(Protocol):
     def extract_pre(email_body: str) -> str:
         PRE_TAG_REGEX = re.compile(r'<pre>(.*?)<\/pre>', re.I)
         return re.search(PRE_TAG_REGEX, email_body)
+
+
+if __name__ == '__main__':
+    import sys
+    print (sys.path)  # .append('../parentdirectory')

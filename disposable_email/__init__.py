@@ -1,0 +1,3 @@
+from disposable_email.DisposableEmail import DisposableEmail
+from disposable_email.GuerillaMail import GuerillaMail
+from disposable_email.MailSlurp import MailSlurp

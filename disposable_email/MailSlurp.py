@@ -1,4 +1,3 @@
-import DisposableEmail
 import pandas as pd
 from typing import Protocol
 from email.message import EmailMessage
@@ -6,7 +5,9 @@ from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling import poll, TimeoutException
 import mailslurp_client
 from IPython.display import clear_output, display, HTML
-from ..config import MAILSLURP_API
+
+from disposable_email.DisposableEmail import DisposableEmail
+
 
 
 class MailSlurp(DisposableEmail):
@@ -25,11 +26,21 @@ class MailSlurp(DisposableEmail):
 
     @property
     def email_address(self) -> str:
-        return self.api_instance.get_inbox_count()
+        return self.inbox.email_address
 
     @property
     def inbox_size(self):
         return len(self.guerillaSession.get_email_list())
+
+    def send_email(self, recipient: str = None, subject: str = None, body: str = None) -> None:
+        self.validate_recipient_email_addr(recipient)
+        send_email_options = mailslurp_client.SendEmailOptions()
+        send_email_options.to = [recipient]
+        send_email_options.subject = "TEST EMAIL - SUBJECT"
+        send_email_options.body = "TEST EMAIL - BODY"
+        send_email_options.is_html = True
+        self.api_instance.send_email(self.inbox.id, send_email_options=send_email_options)
+        print(f"Sending message to: {recipient} from: {self.inbox.email_address}")
 
     # NB: there exists a function (with this name) in the Mailslurp package. See: https://www.mailslurp.com/docs/ruby/docs/InboxControllerApi/
     def send_test_email(self, recipient_email_addr: str) -> None:
@@ -51,24 +62,3 @@ class MailSlurp(DisposableEmail):
         raise NotImplementedError(f"create_Email_instance method not yet implemented for MailSlurp(because ran out of API credits!!!)")
         return msg  # returns the Email Object
 
-
-
-def main(disposable_email: DisposableEmail) -> None:
-
-    my_disposable_email = disposable_email(MAILSLURP_API)
-    print(f"Testing email address: {my_disposable_email.email_address}")
-
-    # testing waiting on email
-    print('waiting on email...')
-    print(my_disposable_email.wait_for_next_email())
-
-    # # send a test email to test 'wait for email'
-    # send_test_message = MailSlurp(API)
-    # send_test_message.send_test_email(my_disposable_email.email_address)
-
-
-if __name__ == '__main__':
-    print(help(DisposableEmail))
-
-    # main(GuerillaMail)
-    # main(MailSlurp)

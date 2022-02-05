@@ -1,5 +1,6 @@
-import DisposableEmail
+from disposable_email.DisposableEmail import DisposableEmail
 import pandas as pd
+from email.message import EmailMessage
 from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling import poll, TimeoutException
 from IPython.display import clear_output, display, HTML
