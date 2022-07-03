@@ -1,8 +1,11 @@
-README.md
+# Disposable Email Interface
 
-# install
-```python setup.py sdist bdist_wheel```
+Simple Protocol implementation of a disposable email interface.  The concept is that the different email services can be plugged in without any changes to underlying code.
 
+
+### Useful links
+Bloacked Email domains.
+* https://github.com/disposable-email-domains/disposable-email-domains
 
 
 

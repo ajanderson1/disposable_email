@@ -1,6 +1,4 @@
+# As per https://github.com/pypa/setuptools/blob/main/docs/userguide/quickstart.rst
 [build-system]
-requires = [
-    "setuptools>=54",
-    "wheel"
-]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"

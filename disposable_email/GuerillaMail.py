@@ -1,16 +1,21 @@
 from disposable_email.DisposableEmail import DisposableEmail
 import pandas as pd
 from email.message import EmailMessage
+from email.utils import formatdate
+import logging
+
 from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling import poll, TimeoutException
 from IPython.display import clear_output, display, HTML
 
+log = logging.getLogger(__name__)
+
 class GuerillaMail(DisposableEmail):
 
     def __init__(self, specified_email_addr=None):
+        print("setting up GuerrillaMailSession")
         self.email_client_name = "GuerillaMail"
         self.guerillaSession = GuerrillaMailSession(email_address=specified_email_addr) if specified_email_addr else GuerrillaMailSession()  # if email address provided use this for session/inbox
-        self.email_address = specified_email_addr
 
     @property
     def email_address(self) -> str:
@@ -20,8 +25,33 @@ class GuerillaMail(DisposableEmail):
     def inbox_size(self):
         return len(self.guerillaSession.get_email_list())
 
-    # TODO: returning any email ->  make new methods for return next new mail, return all, return matching email.
+    # def list_inbox(self,) -> list:
+    #     raise NotImplementedError(f"list_inbox method not yet implemented for GuerillaMail")
 
+    def list_inbox(self) -> None:
+        """ Prints INBOX """
+        email_list = self.guerillaSession.get_email_list()
+        inbox_list = []
+        for email_element in email_list:
+            # utils.pretty(email_element.__dict__)
+            email = self.guerillaSession.get_email(email_element.guid)
+            inbox_list.append(email.__dict__)
+
+        inbox_df = pd.DataFrame(inbox_list)
+        inbox_df.index += 1
+        # print((inbox_list))
+        # display(inbox_df)
+        # TODO: create a nice inbox dsummary table
+        return inbox_list
+
+    def get_most_recent_email(self) -> EmailMessage:
+        if self.inbox_size > 0:
+            log.info(f"Inbox has emails -> size: {self.inbox_size}")
+            return self.wrap_email(self.guerillaSession.get_email(self.guerillaSession.get_email_list()[0].guid))
+        else:
+            log.info(f"Inbox is empty")
+            return None
+        
     def wait_for_next_email(self, timeout=600) -> EmailMessage:
         init_inbox_size = self.inbox_size  # Number of emails at polling start
         try:
@@ -32,36 +62,17 @@ class GuerillaMail(DisposableEmail):
                 step=1,
                 timeout=timeout)
             # return a properly parsed Email: https://docs.python.org/3/library/email.message.html
-            return self.create_Email_instance(self.guerillaSession.get_email(result.guid)) if result else False
+            return self.wrap_email(self.guerillaSession.get_email(result.guid)) if result else None
 
         except TimeoutException as err:
             print(f"Values..\n{(err.values.full())}")
             print(f"Last...\n{err.last}")
 
-    def create_Email_instance(self, this_email) -> EmailMessage:
+    def wrap_email(self, email_GuerillamailEmail) -> EmailMessage:
         msg = EmailMessage()
-        msg.add_header("From", this_email.sender)
-        msg.add_header("To", self.email_address)
-        msg.add_header("Subject", this_email.subject)
-        msg.add_header("Date", this_email.datetime)
-        msg.preamble = print(DisposableEmail.extract_pre(this_email.body))
-        msg.set_content = this_email.body
-        # msg['guid'] = this_email.guid
-        # msg['read'] = this_email.read
+        msg['Subject'] = email_GuerillamailEmail.subject
+        msg['From'] = email_GuerillamailEmail.sender
+        msg['To'] = self.email_address
+        msg['Date'] = formatdate(email_GuerillamailEmail.datetime.timestamp())
+        msg.set_content(email_GuerillamailEmail.body)
         return msg  # returns the Email Object
-
-    #  ADDIONTAL email client-specific functions
-
-    @staticmethod
-    def display_inbox(guerillaSession: GuerrillaMailSession) -> None:
-        """ Prints INBOX """
-        email_list = guerillaSession.get_email_list()
-        inbox_list = []
-        for email_element in email_list:
-            # utils.pretty(email_element.__dict__)
-            email = guerillaSession.get_email(email_element.guid)
-            inbox_list.append(email.__dict__)
-
-        inbox_df = pd.DataFrame(inbox_list)
-        inbox_df.index += 1
-        display(inbox_df)
