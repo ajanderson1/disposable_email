@@ -81,7 +81,7 @@ class MailSlurp(DisposableEmail):
         self.inbox_controller.send_email(self.inbox.id, send_email_options=send_email_options)
         print(f"Sending message to: {recipient} from: {self.inbox.email_address}")
 
-    def wait_for_next_email(self, timeout=100):
+    def await_next_email(self, timeout=100):
         email = self.waitfor_controller.wait_for_latest_email(inbox_id=self.inbox.id, timeout=60000, unread_only=True)
         return self.wrap_email(email) or None
 

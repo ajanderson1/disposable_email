@@ -1,4 +1,4 @@
-from disposable_email.GuerillaMail import GuerillaMail
+from disposable_email.GuerrillaMail import GuerillaMail
 from disposable_email.MailSlurp import MailSlurp
 import config
 
@@ -22,12 +22,12 @@ def test_list_inbox():
     print(inbox)
     assert inbox is not None
 
-def test_get_most_recent_email():
-    # initiate email interface
-    email_interface = get_email_interface()
-    most_recent_email = email_interface.get_most_recent_email()
-    print(most_recent_email)
-    assert most_recent_email is not None
+# def test_get_most_recent_email():
+#     # initiate email interface
+#     email_interface = get_email_interface()
+#     most_recent_email = email_interface.get_most_recent_email()
+#     print(most_recent_email)
+#     assert most_recent_email is not None
 
 if __name__ == "__main__":
     test_get_current_email_address()
