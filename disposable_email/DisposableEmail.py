@@ -1,3 +1,4 @@
+import time
 from typing import Protocol
 from email.message import EmailMessage
 import re
@@ -90,6 +91,25 @@ class DisposableEmail(Protocol):
         return re.search(PRE_TAG_REGEX, email_body)
 
     
+    # create a decorator to catch DisposableEmailException and return a friendly message
+    def catch_disposable_email_exception(func):
+        func_starttime = time.time()
+        print(f"function: {func.__name__}, started at: {func_starttime}")
+        print("PRINGING SOMETRHING!!!!")
+        def wrapper(*args, **kwargs):
+            timeout=kwargs.get('timeout') or 100
+            print(f"Timeout is set to: {timeout}")
+            print(f"so  func_starttime + timeout = { func_starttime + timeout}")
+            print(f"...and time now is: {time.time()}")
+            while time.time()< func_starttime + timeout:
+                print(f"ok  func_starttime + timeout is less than time.time()")
+                try:
+                    func(*args, **kwargs)
+                except DisposableEmailException as e:
+                    print(f"Caight the timeout exception: {e}\nWa")
+                    time.sleep(1) 
+        return wrapper
+
 
 if __name__ == '__main__':
     import sys

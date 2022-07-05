@@ -22,7 +22,6 @@ class GuerrillaMail(DisposableEmail):
         self.email_client_name = "GuerillaMail"
         self.guerrillaSession: GuerrillaMailSession = GuerrillaMailSession(email_address=specified_email_addr) if specified_email_addr else GuerrillaMailSession()  # if email address provided use this for session/inbox
 
-
     @property
     def email_address(self) -> str:
         try:
@@ -86,6 +85,11 @@ class GuerrillaMail(DisposableEmail):
             print(f"DisposableEmailException: {err} raised trying to set init_inbox_size")
             raise DisposableEmailException(f"Error awaiting next email: {err}")
 
+
+    @DisposableEmail.catch_disposable_email_exception
+    def test_func(self, timeout=150):
+        print(f"Print function from instide --{__name__}--")
+        return f"returned value from  --{__name__}--"
 
     def wrap_email(self, email_GuerillamailEmail) -> EmailMessage:
         msg = EmailMessage()
