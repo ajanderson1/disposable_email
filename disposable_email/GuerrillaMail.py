@@ -10,10 +10,27 @@ from polling import poll, TimeoutException
 from IPython.display import clear_output, display, HTML
 
 log = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
-
 
 print(f"To get logger for this module, use: logging.getLogger('{__name__}')")
+
+print("""
+### Welcome to GuerrillaMail for DisposableEmail
+
+USEAGE:
+Begin new session:
+```
+test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
+```
+or omit the email address for a random email address
+
+print(test.inbox_size)
+print(test.list_inbox())
+
+Full GuerrrillaMail API documentation:
+https://www.guerrillamail.com/GuerrillaMailAPI.html
+https://docs.google.com/document/d/1Qw5KQP1j57BPTDmms5nspe-QAjNEsNg8cQHpAAycYNM/edit?hl=en (Updated)
+
+""")
 
 
 class GuerrillaMail(DisposableEmail):
@@ -24,7 +41,11 @@ class GuerrillaMail(DisposableEmail):
 
         """
         log.info(f"Testing logging - {__name__}")
-        self.email_client_name = "GuerillaMail"
+        self.email_client_friendly_name = "GuerillaMail"
+        if specified_email_addr:
+            log.warning(f"NB: User has provided Specified email address.  Please note that only the username part (before the @) will be used alongwith the domain '@guerrillmailablock.com'.\
+                        \nIf multiple '@' symbols are present, everything before first one will be used\
+                        \nAny unallowed chars (includeing spaces) are ignored.")
         self.guerrillaSession: GuerrillaMailSession = GuerrillaMailSession(
             email_address=specified_email_addr) if specified_email_addr else GuerrillaMailSession()  # if email address provided use this for session/inbox
         self.email_address = self.get_email_address()
@@ -61,10 +82,6 @@ class GuerrillaMail(DisposableEmail):
 
     @DisposableEmail.retry_upon_error(3)
     def await_next_email(self, timeout=60, *args, **kwargs) -> EmailMessage:
-        """  
-        NB: Must be ready to catch the GuerillaMailException 504 timeout and retry until `timeout` seconds have passed.
-        Returns a properly parsed Email: https://docs.python.org/3/library/email.message.html
-        """
         init_inbox_size = self.inbox_size  # Number of emails at polling start
         log.debug(f"init_inbox_size: {init_inbox_size}")
         try:
@@ -74,7 +91,7 @@ class GuerrillaMail(DisposableEmail):
                 # check_success=is_correct_response,
                 # ignore 504 timeout (from guerillamail timeouts) )errors - this results i retry
                 ignore_exceptions=(GuerrillaMailException),
-                step=5,  # poll every n seconds  # potentially limited by how quickly we receive back inbox size request
+                step=5,  # poll every n seconds  # potentially increased by how quickly we receive back inbox size request
                 timeout=timeout
             )
             return self.wrap_email(self.guerrillaSession.get_email(result.guid)) if result else None
@@ -82,7 +99,7 @@ class GuerrillaMail(DisposableEmail):
             log.info(
                 f"TimeoutException: No new emails arrived within the allowed time period ({timeout}s).")
             # or return None, but this will only ever run once regadless of decoartar.
-            raise DisposableEmailException(f"Error awaiting next email: {err}")
+            raise DisposableEmailException(f"Error awaiting next email")
 
     @DisposableEmail.retry_upon_error(3)
     def test_func(self, timeout):
@@ -100,6 +117,8 @@ class GuerrillaMail(DisposableEmail):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
     test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
     print(test.inbox_size)
     print(test.list_inbox())

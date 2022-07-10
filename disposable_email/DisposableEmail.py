@@ -22,7 +22,7 @@ class DisposableEmail(Protocol):
     Where multiple inboxes are required, create separate instances
     """
 
-    friendly_name: str = None
+    email_client_friendly_name: str = None
     api_key: str = None  # client-specific API key
     specified_email_addr: str = None  # to check an assigned email address
     password: str = None  # to check an assigned email address
@@ -88,6 +88,18 @@ class DisposableEmail(Protocol):
             print(f"WARNING: Some clients cannot send emails to this domain...")
 
     @staticmethod
+    def validate_email_addr(email_addr):
+        """ Ensure that emaill address conforms to valid structure and return if True """
+
+        EMAIL_REGEX = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', re.I)
+
+        log.debug(f"Validationg: {email_addr}")        
+        if(re.fullmatch(EMAIL_REGEX, email_addr)):
+            return email_addr
+        else:
+            raise ValueError("Invalid Email...")
+    
+    @staticmethod
     def extract_pre(email_body: str) -> str:
         PRE_TAG_REGEX = re.compile(r'<pre>(.*?)<\/pre>', re.I)
         return re.search(PRE_TAG_REGEX, email_body)
@@ -96,10 +108,7 @@ class DisposableEmail(Protocol):
     # create a decorator to catch DisposableEmailException and return a friendly message
     def retry_upon_error(retries = 1):
         """
-        Decorator to catch DisposableEmailException for any reason and attempt retry until user specified timeout.
-        Any function wrapped with this decorator will look for additional kw args:'timeout' if found will 
-        keep repeating until the function returns without error.
-        
+        Decorator to catch DisposableEmailException for *any* reason and attempt retry until user specified timeout.        
         This is to allow for failures/timeouts of any kind to be handled in a consistent manner.
         
         params: retries - number of times to retry the function.
