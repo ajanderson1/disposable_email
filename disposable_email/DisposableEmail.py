@@ -3,12 +3,16 @@ from typing import Protocol
 from email.message import EmailMessage
 import re
 import pandas as pd
+import logging
+from functools import wraps
+import traceback
+
+log = logging.getLogger(__name__)
 
 # create custom exception
 class DisposableEmailException(Exception):
     """ Specialized exception for DisposableEmail Protocol """
     pass
-
 
 
 class DisposableEmail(Protocol):
@@ -23,7 +27,6 @@ class DisposableEmail(Protocol):
     specified_email_addr: str = None  # to check an assigned email address
     password: str = None  # to check an assigned email address
 
-    @property
     def email_address(self) -> str:
         """ Email address of created disposable email session """
         ...
@@ -67,7 +70,6 @@ class DisposableEmail(Protocol):
         """
         write out inbox as html table
         """
-
         inbox_df = pd.DataFrame(inbox)
         inbox_df.index += 1
         return inbox_df.to_html('inbox.html')
@@ -92,25 +94,34 @@ class DisposableEmail(Protocol):
 
     
     # create a decorator to catch DisposableEmailException and return a friendly message
-    def catch_disposable_email_exception(func):
-        func_starttime = time.time()
-        print(f"function: {func.__name__}, started at: {func_starttime}")
-        print("PRINGING SOMETRHING!!!!")
-        def wrapper(*args, **kwargs):
-            timeout=kwargs.get('timeout') or 100
-            print(f"Timeout is set to: {timeout}")
-            print(f"so  func_starttime + timeout = { func_starttime + timeout}")
-            print(f"...and time now is: {time.time()}")
-            while time.time()< func_starttime + timeout:
-                print(f"ok  func_starttime + timeout is less than time.time()")
-                try:
-                    func(*args, **kwargs)
-                except DisposableEmailException as e:
-                    print(f"Caight the timeout exception: {e}\nWa")
-                    time.sleep(1) 
-        return wrapper
-
-
+    def retry_upon_error(retries = 1):
+        """
+        Decorator to catch DisposableEmailException for any reason and attempt retry until user specified timeout.
+        Any function wrapped with this decorator will look for additional kw args:'timeout' if found will 
+        keep repeating until the function returns without error.
+        
+        This is to allow for failures/timeouts of any kind to be handled in a consistent manner.
+        
+        params: retries - number of times to retry the function.
+        """
+        def decorate(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                attempt = 0
+                while attempt < retries:
+                    attempt += 1
+                    log.debug(f"This is Attempt {attempt} of {retries} ({func.__name__})")
+                    try:
+                        return func(*args, **kwargs)
+                    except Exception as err:  #  may be raised for any reason, regardless...
+                        will_retry = True if attempt < retries else False
+                        log.debug(f"Exception raised: {err}\nWill Retry?: {will_retry}")
+                log.debug(f"Function ({__name__}) raised exception: {traceback}.")
+                raise DisposableEmailException(f"Completed {attempt} of {retries} attempts.")                                                
+            return wrapper
+        return decorate
+   
+   
 if __name__ == '__main__':
     import sys
     print(sys.path)  # .append('../parentdirectory')

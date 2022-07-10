@@ -10,6 +10,10 @@ from polling import poll, TimeoutException
 from IPython.display import clear_output, display, HTML
 
 log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
+
+print(f"To get logger for this module, use: logging.getLogger('{__name__}')")
 
 
 class GuerrillaMail(DisposableEmail):
@@ -17,77 +21,71 @@ class GuerrillaMail(DisposableEmail):
     def __init__(self, specified_email_addr=None):
         """
         NB: GuerrillaMailSession does not get attributes (eg. session_id, email address) until one of the get_...() functions are called
+
         """
-        print("setting up GuerrillaMailSession")
+        log.info(f"Testing logging - {__name__}")
         self.email_client_name = "GuerillaMail"
-        self.guerrillaSession: GuerrillaMailSession = GuerrillaMailSession(email_address=specified_email_addr) if specified_email_addr else GuerrillaMailSession()  # if email address provided use this for session/inbox
+        self.guerrillaSession: GuerrillaMailSession = GuerrillaMailSession(
+            email_address=specified_email_addr) if specified_email_addr else GuerrillaMailSession()  # if email address provided use this for session/inbox
+        self.email_address = self.get_email_address()
+        log.info(f"email_address: {self.guerrillaSession.email_address}")
+
+    @DisposableEmail.retry_upon_error(3)
+    def get_email_address(self, *args, **kwargs) -> str:
+        log.info("Attempting to return email address")
+        return self.guerrillaSession.get_session_state()['email_address']
 
     @property
-    def email_address(self) -> str:
-        try:
-            return self.guerrillaSession.get_session_state()['email_address']
-        except GuerrillaMailException as err:
-            raise DisposableEmailException(f"Error getting email address: {err}")
+    @DisposableEmail.retry_upon_error(3)
+    def inbox_size(self, *args, **kwargs) -> int:
+        return len(self.guerrillaSession.get_email_list())
 
-    @property
-    def inbox_size(self):
-        try:
-            return len(self.guerrillaSession.get_email_list())
-        except GuerrillaMailException as err:
-            raise DisposableEmailException(f"Error getting inbox size: {err}")
+    @DisposableEmail.retry_upon_error(3)
+    def list_inbox(self, *args, **kwargs) -> list:
+        email_list = self.guerrillaSession.get_email_list()
+        inbox_list = []
+        # iterate through crude email list and create new list having inspected each email.
+        for email_element in email_list:
+            email = self.guerrillaSession.get_email(email_element.guid)
+            inbox_list.append(email.__dict__)
+        return inbox_list
 
-    def list_inbox(self) -> None:
-        try:
-            email_list = self.guerrillaSession.get_email_list()
-            inbox_list = []
-            # iterate through crude email list and create new list having inspected each email.
-            for email_element in email_list:
-                email = self.guerrillaSession.get_email(email_element.guid)
-                inbox_list.append(email.__dict__)
-            return inbox_list
-        except GuerrillaMailException as err:
-            raise DisposableEmailException(f"Error getting inbox: {err}")
+    @DisposableEmail.retry_upon_error(3)
+    def get_most_recent_emil(self, *args, **kwargs) -> EmailMessage:
+        if self.inbox_size > 0:
+            log.info(f"Inbox has emails -> size: {self.inbox_size}")
+            return self.wrap_email(self.guerrillaSession.get_email(self.guerrillaSession.get_email_list()[0].guid))
+        else:
+            log.info(f"Inbox is empty")
+            return None
 
-
-    def get_most_recent_email(self) -> EmailMessage:
-        try:
-            if self.inbox_size > 0:
-                log.info(f"Inbox has emails -> size: {self.inbox_size}")
-                return self.wrap_email(self.guerrillaSession.get_email(self.guerrillaSession.get_email_list()[0].guid))
-            else:
-                log.info(f"Inbox is empty")
-                return None
-        except GuerrillaMailException as err:
-            raise DisposableEmailException(f"Error getting most recent email: {err}")
-        
-    def await_next_email(self, timeout=600) -> EmailMessage:
+    @DisposableEmail.retry_upon_error(3)
+    def await_next_email(self, timeout=60, *args, **kwargs) -> EmailMessage:
         """  
         NB: Must be ready to catch the GuerillaMailException 504 timeout and retry until `timeout` seconds have passed.
         Returns a properly parsed Email: https://docs.python.org/3/library/email.message.html
         """
+        init_inbox_size = self.inbox_size  # Number of emails at polling start
+        log.debug(f"init_inbox_size: {init_inbox_size}")
         try:
-            init_inbox_size = self.inbox_size  # Number of emails at polling start
-            try:
-                result = poll(
-                    lambda: self.guerrillaSession.get_email_list()[0] if self.inbox_size > init_inbox_size else False,
-                    # check_success=is_correct_response,
-                    ignore_exceptions=(GuerrillaMailException),  # ignore 504 timeout (from guerillamail timeouts) )errors - this results i retry
-                    step=5, # poll every n seconds
-                    timeout=timeout
-                    )
-                return self.wrap_email(self.guerrillaSession.get_email(result.guid)) if result else None
-            except TimeoutException:
-                log.info(f"TimeoutException: No new emails arrived within the allowed time period ({timeout}).")
-                print(f"TimeoutException: No new emails arrived within the allowed time period ({timeout}).")
-                return None
-        except DisposableEmailException as err: # in fact this can cause to fail off the bat. would be better to try a while loop with some reties?
-            log.info(f"DisposableEmailException: {err} raised trying to set init_inbox_size")
-            print(f"DisposableEmailException: {err} raised trying to set init_inbox_size")
+            result = poll(
+                lambda: self.guerrillaSession.get_email_list(
+                )[0] if self.inbox_size > init_inbox_size else False,
+                # check_success=is_correct_response,
+                # ignore 504 timeout (from guerillamail timeouts) )errors - this results i retry
+                ignore_exceptions=(GuerrillaMailException),
+                step=5,  # poll every n seconds  # potentially limited by how quickly we receive back inbox size request
+                timeout=timeout
+            )
+            return self.wrap_email(self.guerrillaSession.get_email(result.guid)) if result else None
+        except TimeoutException:
+            log.info(
+                f"TimeoutException: No new emails arrived within the allowed time period ({timeout}s).")
+            # or return None, but this will only ever run once regadless of decoartar.
             raise DisposableEmailException(f"Error awaiting next email: {err}")
 
-
-    @DisposableEmail.catch_disposable_email_exception
-    def test_func(self, timeout=150):
+    @DisposableEmail.retry_upon_error(3)
+    def test_func(self, timeout):
         print(f"Print function from instide --{__name__}--")
         return f"returned value from  --{__name__}--"
 
@@ -99,3 +97,10 @@ class GuerrillaMail(DisposableEmail):
         msg['Date'] = formatdate(email_GuerillamailEmail.datetime.timestamp())
         msg.set_content(email_GuerillamailEmail.body)
         return msg  # returns the Email Object
+
+
+if __name__ == "__main__":
+    test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
+    print(test.inbox_size)
+    print(test.list_inbox())
+    # test.await_next_email(50) # Will attempt 3x Nsecs to get email, and will raise exception if no email arrives within 50s. Meanwhile running is blocked.
