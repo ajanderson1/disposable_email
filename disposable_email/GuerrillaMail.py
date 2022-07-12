@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from email.utils import formatdate
 import logging
 import time
-
+from rich.console import Console
 from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling import poll, TimeoutException
 from IPython.display import clear_output, display, HTML
@@ -29,7 +29,7 @@ print(test.list_inbox())
 Full GuerrrillaMail API documentation:
 https://www.guerrillamail.com/GuerrillaMailAPI.html
 https://docs.google.com/document/d/1Qw5KQP1j57BPTDmms5nspe-QAjNEsNg8cQHpAAycYNM/edit?hl=en (Updated)
-
+\n
 """)
 
 
@@ -85,16 +85,18 @@ class GuerrillaMail(DisposableEmail):
         init_inbox_size = self.inbox_size  # Number of emails at polling start
         log.debug(f"init_inbox_size: {init_inbox_size}")
         try:
-            result = poll(
-                lambda: self.guerrillaSession.get_email_list(
-                )[0] if self.inbox_size > init_inbox_size else False,
-                # check_success=is_correct_response,
-                # ignore 504 timeout (from guerillamail timeouts) )errors - this results i retry
-                ignore_exceptions=(GuerrillaMailException),
-                step=5,  # poll every n seconds  # potentially increased by how quickly we receive back inbox size request
-                timeout=timeout
-            )
-            return self.wrap_email(self.guerrillaSession.get_email(result.guid)) if result else None
+            console = Console()
+            with console.status(f"[bold green]Awaiting next email...") as status:
+                result = poll(
+                    lambda: self.guerrillaSession.get_email_list(
+                    )[0] if self.inbox_size > init_inbox_size else False,
+                    # check_success=is_correct_response,
+                    # ignore 504 timeout (from guerillamail timeouts) )errors - this results i retry
+                    ignore_exceptions=(GuerrillaMailException),
+                    step=5,  # poll every n seconds  # potentially increased by how quickly we receive back inbox size request
+                    timeout=timeout
+                )
+                return self.wrap_email(self.guerrillaSession.get_email(result.guid)) if result else None
         except TimeoutException:
             log.info(
                 f"TimeoutException: No new emails arrived within the allowed time period ({timeout}s).")
@@ -117,9 +119,9 @@ class GuerrillaMail(DisposableEmail):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
 
     test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
-    print(test.inbox_size)
-    print(test.list_inbox())
+    print(f"Inbox Size: {test.inbox_size}")
+    print(test.await_next_email())
     # test.await_next_email(50) # Will attempt 3x Nsecs to get email, and will raise exception if no email arrives within 50s. Meanwhile running is blocked.
