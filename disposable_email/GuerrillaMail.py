@@ -4,7 +4,7 @@ from email.message import EmailMessage
 from email.utils import formatdate
 from rich.console import Console
 from guerrillamail import GuerrillaMailSession, GuerrillaMailException
-from polling import poll, TimeoutException
+from polling2 import poll, TimeoutException
 
 import logging
 log = logging.getLogger(__name__)

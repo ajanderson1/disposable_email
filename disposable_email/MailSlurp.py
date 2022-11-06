@@ -6,7 +6,7 @@ from email.message import EmailMessage
 from email.utils import formatdate
 
 from guerrillamail import GuerrillaMailSession, GuerrillaMailException
-from polling import poll, TimeoutException
+from polling2 import poll, TimeoutException
 import mailslurp_client
 from IPython.display import clear_output, display, HTML
 
