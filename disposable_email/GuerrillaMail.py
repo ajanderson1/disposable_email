@@ -2,36 +2,12 @@ from disposable_email.DisposableEmail import DisposableEmail, DisposableEmailExc
 import pandas as pd
 from email.message import EmailMessage
 from email.utils import formatdate
-import logging
-import time
 from rich.console import Console
 from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling import poll, TimeoutException
-from IPython.display import clear_output, display, HTML
 
+import logging
 log = logging.getLogger(__name__)
-
-print(f"To get logger for this module, use: logging.getLogger('{__name__}')")
-
-print("""
-### Welcome to GuerrillaMail for DisposableEmail
-
-USEAGE:
-Begin new session:
-```
-test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
-```
-or omit the email address for a random email address
-
-print(test.inbox_size)
-print(test.list_inbox())
-
-Full GuerrrillaMail API documentation:
-https://www.guerrillamail.com/GuerrillaMailAPI.html
-https://docs.google.com/document/d/1Qw5KQP1j57BPTDmms5nspe-QAjNEsNg8cQHpAAycYNM/edit?hl=en (Updated)
-\n
-""")
-
 
 class GuerrillaMail(DisposableEmail):
 
@@ -53,7 +29,7 @@ class GuerrillaMail(DisposableEmail):
 
     @DisposableEmail.retry_upon_error(3)
     def get_email_address(self, *args, **kwargs) -> str:
-        log.info("Attempting to return email address")
+        log.debug("Attempting to return email address")
         return self.guerrillaSession.get_session_state()['email_address']
 
     @property
@@ -86,7 +62,7 @@ class GuerrillaMail(DisposableEmail):
         log.debug(f"init_inbox_size: {init_inbox_size}")
         try:
             console = Console()
-            with console.status(f"[bold green]Awaiting next email...") as status:
+            with console.status(f"[bold green]Awaiting next email({self.email_address})...") as status:
                 result = poll(
                     lambda: self.guerrillaSession.get_email_list(
                     )[0] if self.inbox_size > init_inbox_size else False,

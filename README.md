@@ -2,16 +2,32 @@
 
 Simple Protocol implementation of a disposable email interface.  The concept is that the different email services can be plugged in without any changes to underlying code.
 
+## Testing GuerrilaMail
 
-4/7/22 - working on guerilla mail, faily undsstbale so need to build in a retry favilitiy to each method, perhaps a decoratro, which listens for the tiemout and then tries again if less that user-specified timeout.
+USEAGE:
+Begin new session:
+```
+test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
+```
+or omit the email address for a random email address
 
-### Useful links
+print(test.inbox_size)
+print(test.list_inbox())
+
+Full GuerrrillaMail API documentation:
+https://www.guerrillamail.com/GuerrillaMailAPI.html
+https://docs.google.com/document/d/1Qw5KQP1j57BPTDmms5nspe-QAjNEsNg8cQHpAAycYNM/edit?hl=en (Updated)
+\n
+
+
+
+# Useful links
 Bloacked Email domains.
 * https://github.com/disposable-email-domains/disposable-email-domains
 
 
 
-Further Ideas.
+# Further Ideas.
 
 could have jsut a genreric email client + disposable exmail extends it.
 simploify/unify gmail interface using exisint libraries or imap libs

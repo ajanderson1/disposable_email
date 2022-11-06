@@ -1,12 +1,11 @@
-import time
 from typing import Protocol
 from email.message import EmailMessage
 import re
 import pandas as pd
-import logging
 from functools import wraps
 import traceback
 
+import logging
 log = logging.getLogger(__name__)
 
 # create custom exception
