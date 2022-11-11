@@ -1,9 +1,8 @@
-from django import test
 from disposable_email.GuerrillaMail import GuerrillaMail
-import config
-import logging
+from disposable_email import config
 
-logging.basicConfig(level=logging.DEBUG)
+import logging
+log = logging.getLogger(__name__)
 
 def get_email_interface():
     return GuerrillaMail()
