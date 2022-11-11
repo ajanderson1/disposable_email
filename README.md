@@ -2,7 +2,7 @@
 
 Simple Protocol implementation of a disposable email interface.  The concept is that the different email services can be plugged in without any changes to underlying code.
 
-## Testing GuerrilaMail
+##  GuerrilaMail
 
 USEAGE:
 Begin new session:

@@ -7,6 +7,7 @@ from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling2 import poll, TimeoutException
 
 import logging
+logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 class GuerrillaMail(DisposableEmail):
@@ -48,7 +49,7 @@ class GuerrillaMail(DisposableEmail):
         return inbox_list
 
     @DisposableEmail.retry_upon_error(3)
-    def get_most_recent_emil(self, *args, **kwargs) -> EmailMessage:
+    def get_most_recent_email(self, *args, **kwargs) -> EmailMessage:
         if self.inbox_size > 0:
             log.info(f"Inbox has emails -> size: {self.inbox_size}")
             return self.wrap_email(self.guerrillaSession.get_email(self.guerrillaSession.get_email_list()[0].guid))

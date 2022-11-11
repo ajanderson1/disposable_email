@@ -1,4 +1,8 @@
 # CHANGELOG
+
+## Version 0.0.3
+HRFetcher ready.   This is a dependancy of espchrfetcher
+
 ## Version 0.0.2
 ### Changes
 * ...
