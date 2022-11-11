@@ -7,7 +7,6 @@ from guerrillamail import GuerrillaMailSession, GuerrillaMailException
 from polling2 import poll, TimeoutException
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger(__name__)
 
 class GuerrillaMail(DisposableEmail):
