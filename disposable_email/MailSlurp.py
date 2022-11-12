@@ -1,6 +1,4 @@
 from random import randint
-from numpy import ones
-import pandas as pd
 import logging
 from email.message import EmailMessage
 from email.utils import formatdate
