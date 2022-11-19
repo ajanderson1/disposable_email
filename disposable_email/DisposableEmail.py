@@ -1,7 +1,6 @@
 from typing import Protocol
 from email.message import EmailMessage
 import re
-import pandas as pd
 from functools import wraps
 import traceback
 
@@ -65,13 +64,13 @@ class DisposableEmail(Protocol):
         as the Python standard email Object (see: https://docs.python.org/3/library/email.html)
         """
 
-    def inbox_as_html(inbox: list) -> None:
-        """
-        write out inbox as html table
-        """
-        inbox_df = pd.DataFrame(inbox)
-        inbox_df.index += 1
-        return inbox_df.to_html('inbox.html')
+    # def inbox_as_html(inbox: list) -> None:
+    #     """
+    #     write out inbox as html table
+    #     """
+    #     inbox_df = pd.DataFrame(inbox)
+    #     inbox_df.index += 1
+    #     return inbox_df.to_html('inbox.html')
 
     @staticmethod
     def validate_recipient_email_addr(recipient_email_addr):

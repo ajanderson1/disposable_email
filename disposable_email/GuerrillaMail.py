@@ -1,5 +1,4 @@
 from disposable_email.DisposableEmail import DisposableEmail, DisposableEmailException
-import pandas as pd
 from email.message import EmailMessage
 from email.utils import formatdate
 from rich.console import Console
