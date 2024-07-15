@@ -91,12 +91,3 @@ class GuerrillaMail(DisposableEmail):
         msg['Date'] = formatdate(email_GuerillamailEmail.datetime.timestamp())
         msg.set_content(email_GuerillamailEmail.body)
         return msg  # returns the Email Object
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-
-    test = GuerrillaMail('qfxfsveb@guerrillamailblock.com')
-    print(f"Inbox Size: {test.inbox_size}")
-    print(test.await_next_email())
-    # test.await_next_email(50) # Will attempt 3x Nsecs to get email, and will raise exception if no email arrives within 50s. Meanwhile running is blocked.

@@ -1,4 +1,21 @@
-# As per https://github.com/pypa/setuptools/blob/main/docs/userguide/quickstart.rst
+[tool.poetry]
+name = "disposable-email"
+version = "2.0.1"
+description = "Simple Protocol implementation of a disposable email interface.  The concept is that the different email services can be plugged in without any changes to underlying code."
+authors = ["ajanderson1 <ajanderson1@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-guerrillamail = "^0.2.0"
+mailslurp-client = "^15.19.22"
+rich = "^13.7.1"
+polling2 = "^0.5.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.2"
+
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

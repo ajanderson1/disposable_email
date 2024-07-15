@@ -1,4 +1,0 @@
-python-guerrillamail==0.2.0
-mailslurp-client==15.13.29  
-rich==12.5.1
-polling2==0.5.0
