@@ -1,21 +1,25 @@
-[tool.poetry]
+[project]
 name = "disposable-email"
-version = "2.0.1"
-description = "Simple Protocol implementation of a disposable email interface.  The concept is that the different email services can be plugged in without any changes to underlying code."
-authors = ["ajanderson1 <ajanderson1@gmail.com>"]
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "AJ Anderson",email = "ajanderson1@gmail.com"}
+]
 readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "polling2 (>=0.5.0,<0.6.0)",
+    "rich (>=14.0.0,<15.0.0)",
+    "python-guerrillamail (>=0.2.0,<0.3.0)",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-python-guerrillamail = "^0.2.0"
-mailslurp-client = "^15.19.22"
-rich = "^13.7.1"
-polling2 = "^0.5.0"
-
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.2"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.dev-dependencies]
+ipykernel = "^6.29.5"
+pandas = "^2.3.0"
+pytest = "^8.4.1"
+
